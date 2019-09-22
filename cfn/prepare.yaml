@@ -1,0 +1,8 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Prepare template for slack app example"
+Resources:
+  PackageBucket:
+    Type: AWS::S3::Bucket
+Outputs:
+  PackageBucketName:
+    Value: !Ref PackageBucket

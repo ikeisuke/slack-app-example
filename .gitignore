@@ -10,3 +10,9 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# Dir for go module vendering
+vendor
+
+# Dir for go build output
+build

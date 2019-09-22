@@ -1,1 +1,1 @@
-# slack_command_template
+# Example for Slack App with AWS API Gateway 

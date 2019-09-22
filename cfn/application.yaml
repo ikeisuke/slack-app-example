@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+Description: "application for slack app example"
+Parameters:
+  SlackSigningSecret:
+    Type: String
+    NoEcho: true
+  EnvironmentEncryptionKeyArn:
+    Type: String
+    Default: ""
+Conditions:
+  AllowPlaintextEnvironment: !Equals [ !Ref EnvironmentEncryptionKeyArn, "" ]
+Resources:
+  SlashCommand:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: slash
+      Runtime: go1.x
+      CodeUri: ../build/slash
+      Environment:
+        Variables:
+          SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
+      KmsKeyArn: !If [ AllowPlaintextEnvironment, !Ref AWS::NoValue, !Ref EnvironmentEncryptionKeyArn]
+      Events:
+        HttpPost:
+          Type: Api
+          Properties:
+            Path: '/slash'
+            Method: post
