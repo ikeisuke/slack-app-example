@@ -27,3 +27,19 @@ Resources:
           Properties:
             Path: '/slash'
             Method: post
+  EventReceiver:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: event
+      Runtime: go1.x
+      CodeUri: ../build/event
+      Environment:
+        Variables:
+          SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
+      KmsKeyArn: !If [ AllowPlaintextEnvironment, !Ref AWS::NoValue, !Ref EnvironmentEncryptionKeyArn]
+      Events:
+        HttpPost:
+          Type: Api
+          Properties:
+            Path: '/event'
+            Method: post
