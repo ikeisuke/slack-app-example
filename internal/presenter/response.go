@@ -5,7 +5,6 @@ import (
 )
 
 type ResponsePresenter struct {
-	Response string
 }
 
 func NewResponsePresenter() *ResponsePresenter {

@@ -69,6 +69,9 @@ func (s *SlackCommandInteraction) Run(input *SlashCommandInput) string {
 func parse(qs string) (map[string]string, error) {
 	input := make(map[string]string)
 	for _, s := range strings.Split(qs, "&") {
+		if s == "" {
+			continue
+		}
 		kv := strings.Split(s, "=")
 		if len(kv) != 2 {
 			return nil, errors.New("invalid request body detected")

@@ -5,17 +5,17 @@ import (
 )
 
 type SubCommandRepositoryInput struct {
-	ChannelID   string
-	ChannelName string
-	Command     string
-	ResponseUrl string
-	TeamDomain  string
-	TeamID      string
-	Text        string
-	Token       string
-	TriggerID   string
-	UserID      string
-	UserName    string
+	ChannelID   string `json:"channel_id,omitempty"`
+	ChannelName string `json:"channel_name,omitempty"`
+	Command     string `json:"command,omitempty"`
+	ResponseUrl string `json:"response_url,omitempty"`
+	TeamDomain  string `json:"team_domain,omitempty"`
+	TeamID      string `json:"team_id,omitempty"`
+	Text        string `json:"text,omitempty"`
+	Token       string `json:"token,omitempty"`
+	TriggerID   string `json:"trigger_id,omitempty"`
+	UserID      string `json:"user_id,omitempty"`
+	UserName    string `json:"user_name,omitempty"`
 }
 
 type ISubCommandRepository interface {
