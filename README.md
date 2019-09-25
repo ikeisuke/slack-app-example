@@ -1,1 +1,1 @@
-# Example for Slack App with AWS API Gateway 
+# Example for Slack App with Amazon API Gateway 
