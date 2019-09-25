@@ -5,6 +5,8 @@ import (
 	"github.com/ikeisuke/slack-app-example/internal/event"
 )
 
+type EventRepositoryInput = event.EventWrapper
+
 type IEventRepository interface {
 	Run(input string) (interface{}, error)
 }

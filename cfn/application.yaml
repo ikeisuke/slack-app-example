@@ -5,9 +5,14 @@ Parameters:
   SlackSigningSecret:
     Type: String
     NoEcho: true
+  BotUserAccessToken:
+    Type: String
+    NoEcho: true
   EnvironmentEncryptionKeyArn:
     Type: String
     Default: ""
+  DefaultChannelID:
+    Type: String
 Conditions:
   AllowPlaintextEnvironment: !Equals [ !Ref EnvironmentEncryptionKeyArn, "" ]
 Resources:
@@ -36,6 +41,8 @@ Resources:
       Environment:
         Variables:
           SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
+          BOT_USER_ACCESS_TOKEN: !Ref BotUserAccessToken
+          DEFAULT_CHANNEL_ID: !Ref DefaultChannelID
       KmsKeyArn: !If [ AllowPlaintextEnvironment, !Ref AWS::NoValue, !Ref EnvironmentEncryptionKeyArn]
       Events:
         HttpPost:

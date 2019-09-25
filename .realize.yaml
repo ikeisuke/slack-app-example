@@ -1,0 +1,49 @@
+settings:
+  legacy:
+    force: false
+    interval: 0s
+schema:
+  - name: slack-app-example:event
+    path: .
+    env:
+      GOARCH: amd64
+      GOOS: linux
+    commands:
+      build:
+        status: true
+        method: go build
+        args:
+          - -o
+          - build/event/event
+          - handlers/event/main.go
+    watcher:
+      extensions:
+        - go
+      paths:
+        - /internal
+        - /handlers/event
+      ignored_paths:
+        - .git
+        - vendor
+  - name: slack-app-example:slash
+    path: .
+    env:
+      GOARCH: amd64
+      GOOS: linux
+    commands:
+      build:
+        status: true
+        method: go build
+        args:
+          - -o
+          - build/slash/slash
+          - handlers/slash/main.go
+    watcher:
+      extensions:
+        - go
+      paths:
+        - /internal
+        - /handlers/slash
+      ignored_paths:
+        - .git
+        - vendor
