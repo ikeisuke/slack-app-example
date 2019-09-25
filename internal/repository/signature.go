@@ -4,7 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
+	"errors"
 	"math"
 	"strconv"
 	"time"
@@ -40,13 +40,12 @@ func sign(base string, secret string) string {
 
 func (*SignatureRepository) Verify(input *SignatureInput) error {
 	if math.Abs(float64(time.Now().Unix()-int64(input.Timestamp))) > 5*60 {
-		//return errors.New("input timestamp is newer or older than 5 minutes")
+		return errors.New("input timestamp is newer or older than 5 minutes")
 	}
 	base := input.SignatureVersion + ":" + strconv.Itoa(input.Timestamp) + ":" + input.Body
 	signature := input.SignatureVersion + "=" + sign(base, input.SigningSecret)
-	fmt.Printf("%+v, %+v", signature, input.Signature)
 	if input.Signature != signature {
-		//return errors.New("invalid signature detected")
+		return errors.New("invalid signature detected")
 	}
 	return nil
 }

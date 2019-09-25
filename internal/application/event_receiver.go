@@ -1,10 +1,12 @@
 package application
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/ikeisuke/slack-app-example/internal/infrastructure"
 	"github.com/ikeisuke/slack-app-example/internal/presenter"
 	"github.com/ikeisuke/slack-app-example/internal/repository"
-	"strings"
 )
 
 type EventReceiverInput struct {
@@ -16,26 +18,25 @@ type EventReceiverInput struct {
 }
 
 type EventReceiverInteraction struct {
-	signature      repository.ISignatureRepository
-	event          repository.IEventRepository
-	presenter      presenter.IPresenter
-	infrastructure infrastructure.ISlack
+	signature repository.ISignatureRepository
+	event     repository.IEventRepository
+	presenter presenter.IPresenter
+	slack     infrastructure.ISlack
 }
 
 type EventReceiverOutput struct {
 }
 
-func NewEventReceiverInteraction(r repository.ISignatureRepository, e repository.IEventRepository, p presenter.IPresenter, i infrastructure.ISlack) *EventReceiverInteraction {
+func NewEventReceiverInteraction(r repository.ISignatureRepository, e repository.IEventRepository, p presenter.IPresenter, s infrastructure.ISlack) *EventReceiverInteraction {
 	return &EventReceiverInteraction{
-		signature:      r,
-		event:          e,
-		presenter:      p,
-		infrastructure: i,
+		signature: r,
+		event:     e,
+		presenter: p,
+		slack:     s,
 	}
 }
 
 func (s *EventReceiverInteraction) Run(input *EventReceiverInput) string {
-	var body interface{}
 	var err error
 	err = s.signature.Verify(&repository.SignatureInput{
 		Timestamp:        input.Timestamp,
@@ -45,19 +46,26 @@ func (s *EventReceiverInteraction) Run(input *EventReceiverInput) string {
 		SignatureVersion: input.SignatureVersion,
 	})
 	if err == nil {
-		body, err = s.event.Run(input.Body)
+		var event repository.EventRepositoryInput
+		if err = json.Unmarshal([]byte(input.Body), &event); err == nil {
+			_, err = s.event.Run(event, func(eventType string, data []byte) error {
+				switch eventType {
+				case "app_mention":
+					repo := repository.NewAppMentionRepository()
+					app := NewEventAppMentionInteraction(repo, s.slack)
+					return app.Run(data)
+				default:
+					return errors.New(fmt.Sprintf("unsupported inner event type: %s", eventType))
+				}
+				return nil
+			})
+		}
 	}
 	if err != nil {
 		message := &infrastructure.Message{
 			Text: err.Error(),
-			Attachments: []infrastructure.MessageAttachment{
-				{
-					Title: "request body",
-					Text:  strings.Replace(input.Body, "@", "\\@", -1),
-				},
-			},
 		}
-		s.infrastructure.PostMessage("", message)
+		s.slack.PostMessage("", message)
 	}
-	return s.presenter.Output(body, err)
+	return s.presenter.Output(input.Body, err)
 }

@@ -1,6 +1,8 @@
 package infrastructure
 
-import "github.com/nlopes/slack"
+import (
+	"github.com/nlopes/slack"
+)
 
 type ISlack interface {
 	PostMessage(channelID string, message *Message) error
@@ -14,6 +16,7 @@ type Slack struct {
 type Message struct {
 	Text        string
 	Attachments []MessageAttachment
+	ThreadTS    string
 }
 
 type MessageAttachment struct {
@@ -43,6 +46,9 @@ func (s *Slack) PostMessage(channelID string, message *Message) error {
 			}
 		}
 		options = append(options, slack.MsgOptionAttachments(attachments...))
+	}
+	if message.ThreadTS != "" {
+		options = append(options, slack.MsgOptionTS(message.ThreadTS))
 	}
 	_, _, err := s.upstream.PostMessage(channelID, options...)
 	return err
