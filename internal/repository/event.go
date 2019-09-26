@@ -4,22 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ikeisuke/slack-app-example/entity"
+	application "github.com/ikeisuke/slack-app-example/internal/application/event"
+	"github.com/ikeisuke/slack-app-example/internal/infrastructure"
+	repository "github.com/ikeisuke/slack-app-example/internal/repository/event"
 )
 
 type EventRepositoryInput struct {
-	TeamID      string          `json:"team_id,omitempty"`
-	APIAppID    string          `json:"api_app_id,omitempty"`
-	Type        string          `json:"type,omitempty"`
-	Challenge   string          `json:"challenge,omitempty"`
-	AuthedUsers []string        `json:"authed_users,omitempty"`
-	EventID     string          `json:"event_id,omitempty"`
-	EventTime   int             `json:"event_time,omitempty"`
-	Event       json.RawMessage `json:"event,omitempty"`
-}
-
-type InnerEvent struct {
-	Type    string `json:"type"`
-	Subtype string `json:"subtype""`
+	OuterEvent entity.EventWrapper
 }
 
 type EventRepositoryOutput struct {
@@ -27,29 +19,30 @@ type EventRepositoryOutput struct {
 }
 
 type IEventRepository interface {
-	Run(input EventRepositoryInput, callback func(string, []byte) error) (interface{}, error)
+	Run(input EventRepositoryInput) error
 }
-type EventRepository struct{}
-
-func NewEventRepository() *EventRepository {
-	return &EventRepository{}
+type EventRepository struct {
+	infrastructure infrastructure.ISlack
 }
 
-func (s *EventRepository) Run(input EventRepositoryInput, callback func(string, []byte) error) (interface{}, error) {
-	if input.Type == "url_verification" {
-		return &EventRepositoryOutput{
-			Challenge: input.Challenge,
-		}, nil
-	} else if input.Type == "event_callback" {
-		event := []byte(input.Event)
-		var inner InnerEvent
-		if err := json.Unmarshal(event, &inner); err != nil {
-			return nil, err
-		}
-		if err := callback(inner.Type, event); err != nil {
-			return nil, err
-		}
-		return nil, nil
+func NewEventRepository(infra infrastructure.ISlack) *EventRepository {
+	return &EventRepository{
+		infrastructure: infra,
 	}
-	return nil, errors.New(fmt.Sprintf("unknown event type: %s", input.Type))
+}
+
+func (s *EventRepository) Run(input EventRepositoryInput) error {
+	rawInnerEvent := []byte(input.OuterEvent.Event)
+	var inner entity.EventBase
+	if err := json.Unmarshal(rawInnerEvent, &inner); err != nil {
+		return err
+	}
+	switch inner.Type {
+	case "app_mention":
+		repo := repository.NewAppMentionRepository(s.infrastructure)
+		app := application.NewAppMentionInteraction(repo)
+		return app.Run(application.AppMentionInput{Data: rawInnerEvent})
+	default:
+		return errors.New(fmt.Sprintf("unsupported inner event type: %s", input.OuterEvent.Type))
+	}
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ikeisuke/slack-app-example/internal/infrastructure"
+	"github.com/ikeisuke/slack-app-example/entity"
 	"github.com/ikeisuke/slack-app-example/internal/presenter"
 	"github.com/ikeisuke/slack-app-example/internal/repository"
 )
@@ -21,23 +21,22 @@ type EventReceiverInteraction struct {
 	signature repository.ISignatureRepository
 	event     repository.IEventRepository
 	presenter presenter.IPresenter
-	slack     infrastructure.ISlack
 }
 
 type EventReceiverOutput struct {
 }
 
-func NewEventReceiverInteraction(r repository.ISignatureRepository, e repository.IEventRepository, p presenter.IPresenter, s infrastructure.ISlack) *EventReceiverInteraction {
+func NewEventReceiverInteraction(r repository.ISignatureRepository, e repository.IEventRepository, p presenter.IPresenter) *EventReceiverInteraction {
 	return &EventReceiverInteraction{
 		signature: r,
 		event:     e,
 		presenter: p,
-		slack:     s,
 	}
 }
 
 func (s *EventReceiverInteraction) Run(input *EventReceiverInput) string {
 	var err error
+	var data interface{}
 	err = s.signature.Verify(&repository.SignatureInput{
 		Timestamp:        input.Timestamp,
 		Signature:        input.Signature,
@@ -46,26 +45,22 @@ func (s *EventReceiverInteraction) Run(input *EventReceiverInput) string {
 		SignatureVersion: input.SignatureVersion,
 	})
 	if err == nil {
-		var event repository.EventRepositoryInput
+		var event entity.EventWrapper
 		if err = json.Unmarshal([]byte(input.Body), &event); err == nil {
-			_, err = s.event.Run(event, func(eventType string, data []byte) error {
-				switch eventType {
-				case "app_mention":
-					repo := repository.NewAppMentionRepository()
-					app := NewEventAppMentionInteraction(repo, s.slack)
-					return app.Run(data)
-				default:
-					return errors.New(fmt.Sprintf("unsupported inner event type: %s", eventType))
+			switch event.Type {
+			case "url_verification":
+				data = entity.EventURLVerificationOutput{
+					Challenge: event.Challenge,
 				}
-				return nil
-			})
+			case "event_callback":
+				err = s.event.Run(repository.EventRepositoryInput{OuterEvent: event})
+			default:
+				err = errors.New(fmt.Sprintf("unsupported outer event type: %s", event.Type))
+			}
 		}
 	}
 	if err != nil {
-		message := &infrastructure.Message{
-			Text: err.Error(),
-		}
-		s.slack.PostMessage("", message)
+		fmt.Println(err.Error())
 	}
-	return s.presenter.Output(input.Body, err)
+	return s.presenter.Output(data, err)
 }

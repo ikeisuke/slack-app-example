@@ -46,7 +46,6 @@ deploy:
 sam-local-start: build
 	[ -f build/sam.pid ] || (sam local start-api -t cfn/application.yaml & echo $$! > build/sam.pid)
 	[ -f build/realize.pid ] || (GOARCH=amd64 GOOS=linux realize start & echo $$! > build/realize.pid)
-	sleep 10
 
 sam-local-stop:
 	[ -f build/sam.pid ] && kill `cat build/sam.pid` && rm build/sam.pid

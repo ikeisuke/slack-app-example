@@ -1,27 +1,17 @@
 package infrastructure
 
 import (
+	"github.com/ikeisuke/slack-app-example/entity"
 	"github.com/nlopes/slack"
 )
 
 type ISlack interface {
-	PostMessage(channelID string, message *Message) error
+	PostMessage(channelID string, message *entity.SlackMessage) error
 }
 
 type Slack struct {
 	upstream         *slack.Client
 	DefaultChannelID string
-}
-
-type Message struct {
-	Text        string
-	Attachments []MessageAttachment
-	ThreadTS    string
-}
-
-type MessageAttachment struct {
-	Title string
-	Text  string
 }
 
 func NewSlack(token string, channelID string) *Slack {
@@ -31,7 +21,7 @@ func NewSlack(token string, channelID string) *Slack {
 	}
 }
 
-func (s *Slack) PostMessage(channelID string, message *Message) error {
+func (s *Slack) PostMessage(channelID string, message *entity.SlackMessage) error {
 	if channelID == "" {
 		channelID = s.DefaultChannelID
 	}
