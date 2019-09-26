@@ -20,7 +20,7 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 	}
 	repo := repository.NewSignatureRepository()
 	present := presenter.NewSimplePresenter()
-	infra := infrastructure.NewSlack(os.Getenv("BOT_USER_ACCESS_TOKEN"), os.Getenv("DEFAULT_CHANNEL_ID義tq"))
+	infra := infrastructure.NewSlack(os.Getenv("BOT_USER_ACCESS_TOKEN"), os.Getenv("DEFAULT_CHANNEL_ID"))
 	event := repository.NewEventRepository()
 	app := application.NewEventReceiverInteraction(repo, event, present, infra)
 	res := app.Run(&application.EventReceiverInput{
