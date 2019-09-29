@@ -1,9 +1,12 @@
 package command
 
-import "github.com/ikeisuke/slack-app-example/internal/infrastructure"
+import (
+	"github.com/ikeisuke/slack-app-example/internal/entity"
+	"github.com/ikeisuke/slack-app-example/internal/infrastructure"
+)
 
 type IChannelRepository interface {
-	List() (interface{}, error)
+	List() (entity.SlackAPIChannelListResponse, error)
 }
 
 type ChannelRepository struct {
@@ -16,6 +19,6 @@ func NewChannelRepository(infra infrastructure.ISlack) *ChannelRepository {
 	}
 }
 
-func (c *ChannelRepository) List() (interface{}, error) {
+func (c *ChannelRepository) List() (entity.SlackAPIChannelListResponse, error) {
 	return c.infrastructure.ChannelList()
 }

@@ -16,9 +16,9 @@ type SlashCommandInput struct {
 }
 
 type SlackCommandInteraction struct {
-	signature  repository.ISignatureRepository
-	subCommand repository.ICommandRepository
-	presenter  presenter.IPresenter
+	signature repository.ISignatureRepository
+	command   repository.ICommandRepository
+	presenter presenter.IPresenter
 }
 
 type SlackCommandOutput struct {
@@ -26,20 +26,21 @@ type SlackCommandOutput struct {
 
 func NewSlashCommandInteraction(r repository.ISignatureRepository, s repository.ICommandRepository, p presenter.IPresenter) *SlackCommandInteraction {
 	return &SlackCommandInteraction{
-		signature:  r,
-		subCommand: s,
-		presenter:  p,
+		signature: r,
+		command:   s,
+		presenter: p,
 	}
 }
 
 func (s *SlackCommandInteraction) Run(input *SlashCommandInput) (string, error) {
-	err := s.signature.Verify(&repository.SignatureInput{
+	verifyInput := repository.SignatureInput{
 		Timestamp:        input.Timestamp,
 		Signature:        input.Signature,
 		SigningSecret:    input.SigningSecret,
 		Body:             input.Body,
 		SignatureVersion: input.SignatureVersion,
-	})
+	}
+	err := s.signature.Verify(verifyInput)
 	if err != nil {
 		return s.presenter.Output(errorData(err))
 	}
@@ -47,7 +48,7 @@ func (s *SlackCommandInteraction) Run(input *SlashCommandInput) (string, error) 
 	if err != nil {
 		return s.presenter.Output(errorData(err))
 	}
-	body, err := s.subCommand.Run(repository.CommandRepositoryInput{
+	mainInput := repository.CommandRepositoryInput{
 		ChannelID:   parsed["channel_id"],
 		ChannelName: parsed["channel_name"],
 		Command:     parsed["command"],
@@ -59,7 +60,8 @@ func (s *SlackCommandInteraction) Run(input *SlashCommandInput) (string, error) 
 		TriggerID:   parsed["trigger_id"],
 		UserID:      parsed["user_id"],
 		UserName:    parsed["user_name"],
-	})
+	}
+	body, err := s.command.Run(mainInput)
 	if err != nil {
 		return s.presenter.Output(errorData(err))
 	}

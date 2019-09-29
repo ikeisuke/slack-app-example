@@ -12,7 +12,7 @@ import (
 
 type ISlack interface {
 	PostMessage(channelID string, message *entity.SlackMessage) error
-	ChannelList() (interface{}, error)
+	ChannelList() (entity.SlackAPIChannelListResponse, error)
 	PostToResponseURL(url string, data interface{}) error
 }
 
@@ -51,8 +51,20 @@ func (s *Slack) PostMessage(channelID string, message *entity.SlackMessage) erro
 	return err
 }
 
-func (s *Slack) ChannelList() (interface{}, error) {
-	return s.upstream.GetChannels(false)
+func (s *Slack) ChannelList() (entity.SlackAPIChannelListResponse, error) {
+	channels, err := s.upstream.GetChannels(false)
+	if err != nil {
+		return nil, err
+	}
+	length := len(channels)
+	res := make(entity.SlackAPIChannelListResponse, length, length)
+	for i, channel := range channels {
+		res[i] = entity.SlackAPIChannelResponse{
+			ID:   channel.ID,
+			Name: channel.Name,
+		}
+	}
+	return res, nil
 }
 
 type PostToResponseURLResponse struct {

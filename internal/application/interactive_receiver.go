@@ -28,14 +28,14 @@ func NewInteractivityInteraction(r repository.ISignatureRepository, i repository
 }
 
 func (s *InteractiveInteraction) Run(input InteractiveInput) error {
-	err := s.signature.Verify(&repository.SignatureInput{
+	verifyInput := repository.SignatureInput{
 		Timestamp:        input.Timestamp,
 		Signature:        input.Signature,
 		SigningSecret:    input.SigningSecret,
 		Body:             input.Body,
 		SignatureVersion: input.SignatureVersion,
-	})
-	if err != nil {
+	}
+	if err := s.signature.Verify(verifyInput); err != nil {
 		return err
 	}
 	data, err := parse(input.Body)
