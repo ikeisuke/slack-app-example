@@ -14,10 +14,7 @@ type SignatureRepositoryMock struct {
 	valid bool
 }
 
-func NewSignatureRepositoryMock(valid bool) *SignatureRepositoryMock {
-	return &SignatureRepositoryMock{valid: valid}
-}
-func (s *SignatureRepositoryMock) Verify(input *repository.SignatureInput) error {
+func (s *SignatureRepositoryMock) Verify(input repository.SignatureInput) error {
 	if s.valid {
 		return nil
 	}
@@ -28,15 +25,13 @@ type CommandRepositoryMock struct {
 	err error
 }
 
-func NewCommandRepository(err error) *CommandRepositoryMock {
-	return &CommandRepositoryMock{
-		err: err,
-	}
-}
 func (s *CommandRepositoryMock) Run(input repository.CommandRepositoryInput) (*entity.SlackMessage, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
 	return &entity.SlackMessage{
 		Text: input.UserName,
-	}, s.err
+	}, nil
 }
 
 type PresenterMock struct {
@@ -60,13 +55,13 @@ func TestNewSlashCommandInteraction(t *testing.T) {
 	}{
 		{
 			args: args{
-				r: NewSignatureRepositoryMock(true),
-				s: NewCommandRepository(nil),
+				r: &SignatureRepositoryMock{valid: true},
+				s: &CommandRepositoryMock{},
 				p: &PresenterMock{},
 			},
 			want: NewSlashCommandInteraction(
-				NewSignatureRepositoryMock(true),
-				NewCommandRepository(nil),
+				&SignatureRepositoryMock{valid: true},
+				&CommandRepositoryMock{},
 				&PresenterMock{},
 			),
 		},
@@ -98,8 +93,8 @@ func TestSlackCommandInteraction_Run(t *testing.T) {
 		{
 			name: "invalid signature",
 			fields: fields{
-				signature: NewSignatureRepositoryMock(false),
-				command:   NewCommandRepository(nil),
+				signature: &SignatureRepositoryMock{valid: false},
+				command:   &CommandRepositoryMock{},
 				presenter: &PresenterMock{},
 			},
 			args: args{
@@ -110,8 +105,8 @@ func TestSlackCommandInteraction_Run(t *testing.T) {
 		{
 			name: "valid signature, empty request body",
 			fields: fields{
-				signature: NewSignatureRepositoryMock(true),
-				command:   NewCommandRepository(nil),
+				signature: &SignatureRepositoryMock{valid: true},
+				command:   &CommandRepositoryMock{},
 				presenter: &PresenterMock{},
 			},
 			args: args{
@@ -122,8 +117,8 @@ func TestSlackCommandInteraction_Run(t *testing.T) {
 		{
 			name: "valid signature, full request body",
 			fields: fields{
-				signature: NewSignatureRepositoryMock(true),
-				command:   NewCommandRepository(nil),
+				signature: &SignatureRepositoryMock{valid: true},
+				command:   &CommandRepositoryMock{},
 				presenter: &PresenterMock{},
 			},
 			args: args{
@@ -132,6 +127,20 @@ func TestSlackCommandInteraction_Run(t *testing.T) {
 				},
 			},
 			want: "{\"text\":\"l\"}",
+		},
+		{
+			name: "valid signature, repository error",
+			fields: fields{
+				signature: &SignatureRepositoryMock{valid: true},
+				command:   &CommandRepositoryMock{err: errors.New("err")},
+				presenter: &PresenterMock{},
+			},
+			args: args{
+				input: &SlashCommandInput{
+					Body: "channel_id=a&channel_name=b&command=c&response_url=d&team_domain=e&team_id=f&text=h&token=i&trigger_id=j&user_id=k&user_name=l",
+				},
+			},
+			want: "{\"response_type\":\"ephemeral\",\"text\":\"Sorry, that didn't work. Please try again. (err)\"}",
 		},
 	}
 	for _, tt := range tests {

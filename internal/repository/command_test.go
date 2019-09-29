@@ -1,51 +1,86 @@
 package repository
 
 import (
+	"github.com/ikeisuke/slack-app-example/internal/entity"
+	"github.com/ikeisuke/slack-app-example/internal/infrastructure"
 	"reflect"
 	"testing"
 )
 
+type SlackInfrastructureMock struct {
+	infrastructure.ISlack
+}
+
 func TestNewSubCommandRepository(t *testing.T) {
+	type args struct {
+		infra infrastructure.ISlack
+	}
 	tests := []struct {
 		name string
+		args args
 		want *CommandRepository
 	}{
 		{
-			want: &CommandRepository{},
+			args: args{
+				infra: SlackInfrastructureMock{},
+			},
+			want: &CommandRepository{
+				infrastructure: SlackInfrastructureMock{},
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewCommandRepository(); !reflect.DeepEqual(got, tt.want) {
+			if got := NewCommandRepository(tt.args.infra); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("NewCommandRepository() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestSubCommandRepository_Run(t *testing.T) {
+func TestCommandRepository_Run(t *testing.T) {
+	type fields struct {
+		infrastructure infrastructure.ISlack
+	}
 	type args struct {
 		input CommandRepositoryInput
 	}
 	tests := []struct {
 		name    string
+		fields  fields
 		args    args
-		want    interface{}
+		want    *entity.SlackMessage
 		wantErr bool
 	}{
 		{
+			name: "unknown command",
+			fields: fields{
+				infrastructure: &SlackInfrastructureMock{},
+			},
 			args: args{
-				input: CommandRepositoryInput{},
+				input: CommandRepositoryInput{
+					ChannelID:   "",
+					ChannelName: "",
+					Command:     "",
+					ResponseUrl: "",
+					TeamDomain:  "",
+					TeamID:      "",
+					Text:        "unknown_command unknown_subcommand",
+					Token:       "",
+					TriggerID:   "",
+					UserID:      "",
+					UserName:    "",
+				},
 			},
-			want: map[string]string{
-				"text": "{}",
-			},
-			wantErr: false,
+			want:    nil,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &CommandRepository{}
+			s := &CommandRepository{
+				infrastructure: tt.fields.infrastructure,
+			}
 			got, err := s.Run(tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)

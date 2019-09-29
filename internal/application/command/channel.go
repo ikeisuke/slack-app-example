@@ -24,13 +24,20 @@ func (c *ChannelInteraction) List(input ChannelListInput) (*entity.SlackMessage,
 	if err != nil {
 		return nil, err
 	}
-	elements := make([]entity.SlackMessageBlockActionElement, len(channels), len(channels))
+	length := len(channels)
+	if length == 0 {
+		return &entity.SlackMessage{
+			ResponseType: "ephemeral",
+			Text:         "No channels found.",
+		}, err
+	}
+	elements := make([]entity.SlackMessageBlockActionElement, length, length)
 	for i, channel := range channels {
 		elements[i] = entity.SlackMessageBlockActionElement{
 			Type:     "button",
 			ActionID: fmt.Sprintf("channel_detail_%s", channel.ID),
 			Text: &entity.SlackMessageTextObject{
-				Type: "plain_text",
+				Type: "mrkdwn",
 				Text: channel.Name,
 			},
 		}
