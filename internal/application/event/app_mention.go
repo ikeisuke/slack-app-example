@@ -3,7 +3,7 @@ package event
 import (
 	"encoding/json"
 	"errors"
-	"github.com/ikeisuke/slack-app-example/entity"
+	"github.com/ikeisuke/slack-app-example/internal/entity"
 	repository "github.com/ikeisuke/slack-app-example/internal/repository/event"
 )
 

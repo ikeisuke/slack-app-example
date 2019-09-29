@@ -1,7 +1,7 @@
 package event
 
 import (
-	"github.com/ikeisuke/slack-app-example/entity"
+	"github.com/ikeisuke/slack-app-example/internal/entity"
 	"github.com/ikeisuke/slack-app-example/internal/infrastructure"
 )
 

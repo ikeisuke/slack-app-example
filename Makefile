@@ -8,10 +8,12 @@ install:
 build:
 	GOARCH=amd64 GOOS=linux go build -o build/slash/slash handlers/slash/main.go
 	GOARCH=amd64 GOOS=linux go build -o build/event/event handlers/event/main.go
+	GOARCH=amd64 GOOS=linux go build -o build/interactive/interactive handlers/interactive/main.go
 
 test:
 	go test handlers/slash/main.go
 	go test handlers/event/main.go
+	go test handlers/interactive/main.go
 
 clean: sam-local-stop
 	-rm -rf build

@@ -25,6 +25,8 @@ Resources:
       Environment:
         Variables:
           SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
+          BOT_USER_ACCESS_TOKEN: !Ref BotUserAccessToken
+          DEFAULT_CHANNEL_ID: !Ref DefaultChannelID
       KmsKeyArn: !If [ AllowPlaintextEnvironment, !Ref AWS::NoValue, !Ref EnvironmentEncryptionKeyArn]
       Events:
         HttpPost:
@@ -49,4 +51,22 @@ Resources:
           Type: Api
           Properties:
             Path: '/event'
+            Method: post
+  InteractiveReceiver:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: interactive
+      Runtime: go1.x
+      CodeUri: ../build/interactive
+      Environment:
+        Variables:
+          SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
+          BOT_USER_ACCESS_TOKEN: !Ref BotUserAccessToken
+          DEFAULT_CHANNEL_ID: !Ref DefaultChannelID
+      KmsKeyArn: !If [ AllowPlaintextEnvironment, !Ref AWS::NoValue, !Ref EnvironmentEncryptionKeyArn]
+      Events:
+        HttpPost:
+          Type: Api
+          Properties:
+            Path: '/interactive'
             Method: post

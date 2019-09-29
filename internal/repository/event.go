@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/ikeisuke/slack-app-example/entity"
 	application "github.com/ikeisuke/slack-app-example/internal/application/event"
+	"github.com/ikeisuke/slack-app-example/internal/entity"
 	"github.com/ikeisuke/slack-app-example/internal/infrastructure"
 	repository "github.com/ikeisuke/slack-app-example/internal/repository/event"
 )

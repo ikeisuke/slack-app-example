@@ -1,12 +1,19 @@
 package infrastructure
 
 import (
-	"github.com/ikeisuke/slack-app-example/entity"
+	"bytes"
+	"encoding/json"
+	"errors"
+	"github.com/ikeisuke/slack-app-example/internal/entity"
 	"github.com/nlopes/slack"
+	"io/ioutil"
+	"net/http"
 )
 
 type ISlack interface {
 	PostMessage(channelID string, message *entity.SlackMessage) error
+	ChannelList() (interface{}, error)
+	PostToResponseURL(url string, data interface{}) error
 }
 
 type Slack struct {
@@ -42,4 +49,37 @@ func (s *Slack) PostMessage(channelID string, message *entity.SlackMessage) erro
 	}
 	_, _, err := s.upstream.PostMessage(channelID, options...)
 	return err
+}
+
+func (s *Slack) ChannelList() (interface{}, error) {
+	return s.upstream.GetChannels(false)
+}
+
+type PostToResponseURLResponse struct {
+	OK    string `json:"ok"`
+	Error string `json:"error,omitempty"`
+}
+
+func (s *Slack) PostToResponseURL(url string, data interface{}) error {
+	body, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	res, err := http.Post(url, "application/json", bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	body, error := ioutil.ReadAll(res.Body)
+	if error != nil {
+		return err
+	}
+	parsed := &PostToResponseURLResponse{}
+	if err := json.Unmarshal(body, res); err != nil {
+		return err
+	}
+	if parsed.OK != "ok" {
+		return errors.New(parsed.Error)
+	}
+	return nil
 }
