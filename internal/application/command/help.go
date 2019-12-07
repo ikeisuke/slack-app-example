@@ -20,14 +20,11 @@ func NewHelpInteraction(repository command.IHelpRepository) *HelpInteraction {
 }
 
 func (h *HelpInteraction) Run(input HelpInput) (*entity.SlackMessage, error) {
-	message, err := h.repository.HelpMessage(command.HelpRepositoryInput{
-		SlashCommand: input.SlashCommand,
-	})
+	message, err := h.repository.HelpMessage(command.HelpRepositoryInput{SlashCommand: input.SlashCommand})
 	if err != nil {
 		return nil, err
 	}
 	return &entity.SlackMessage{
-		ResponseType: "ephemeral",
 		Blocks: []entity.SlackMessageBlock{
 			{
 				Type: "section",

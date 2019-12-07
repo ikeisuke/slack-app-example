@@ -13,7 +13,7 @@ func TestNewSignatureRepository(t *testing.T) {
 		want *SignatureRepository
 	}{
 		{
-			want: &SignatureRepository{},
+			want: NewSignatureRepository(),
 		},
 	}
 	for _, tt := range tests {
@@ -27,7 +27,7 @@ func TestNewSignatureRepository(t *testing.T) {
 
 func TestSignatureRepository_Verify(t *testing.T) {
 	type args struct {
-		input SignatureInput
+		input *SignatureInput
 	}
 	timestamp := int(time.Now().Unix())
 	tests := []struct {
@@ -39,7 +39,7 @@ func TestSignatureRepository_Verify(t *testing.T) {
 		{
 			name: "more than 5 minutes ago",
 			args: args{
-				input: SignatureInput{
+				input: &SignatureInput{
 					Timestamp:        timestamp - (5*60 + 1),
 					Signature:        "",
 					SigningSecret:    "",
@@ -53,7 +53,7 @@ func TestSignatureRepository_Verify(t *testing.T) {
 		{
 			name: "more than 5 minutes in the future",
 			args: args{
-				input: SignatureInput{
+				input: &SignatureInput{
 					Timestamp:        timestamp + (5*60 + 1),
 					Signature:        "",
 					SigningSecret:    "",
@@ -67,7 +67,7 @@ func TestSignatureRepository_Verify(t *testing.T) {
 		{
 			name: "5 minutes ago and invalid signature",
 			args: args{
-				input: SignatureInput{
+				input: &SignatureInput{
 					Timestamp:        timestamp - (5 * 60),
 					Signature:        "",
 					SigningSecret:    "",
@@ -81,7 +81,7 @@ func TestSignatureRepository_Verify(t *testing.T) {
 		{
 			name: "5 minutes in the future and invalid signature",
 			args: args{
-				input: SignatureInput{
+				input: &SignatureInput{
 					Timestamp:        timestamp + (5 * 60),
 					Signature:        "",
 					SigningSecret:    "",
@@ -95,7 +95,7 @@ func TestSignatureRepository_Verify(t *testing.T) {
 		{
 			name: "valid signature",
 			args: args{
-				input: SignatureInput{
+				input: &SignatureInput{
 					Timestamp:        int(timestamp),
 					Signature:        "v0=" + sign("v0:"+strconv.Itoa(timestamp)+":a=b&c=d&e=f", "signature_secret_txt"),
 					SigningSecret:    "signature_secret_txt",

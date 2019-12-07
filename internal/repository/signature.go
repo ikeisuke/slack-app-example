@@ -32,6 +32,12 @@ func NewSignatureRepository() *SignatureRepository {
 	return &SignatureRepository{}
 }
 
+func sign(base string, secret string) string {
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(base))
+	return hex.EncodeToString(mac.Sum(nil))
+}
+
 func (*SignatureRepository) Verify(input SignatureInput) error {
 	if math.Abs(float64(time.Now().Unix()-int64(input.Timestamp))) > 5*60 {
 		return errors.New("input timestamp is newer or older than 5 minutes")
@@ -42,10 +48,4 @@ func (*SignatureRepository) Verify(input SignatureInput) error {
 		return errors.New("invalid signature detected")
 	}
 	return nil
-}
-
-func sign(base string, secret string) string {
-	mac := hmac.New(sha256.New, []byte(secret))
-	mac.Write([]byte(base))
-	return hex.EncodeToString(mac.Sum(nil))
 }
