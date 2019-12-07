@@ -70,3 +70,7 @@ Resources:
           Properties:
             Path: '/interactive'
             Method: post
+Outputs:
+  ProdDataEndpoint:
+    Description: "API Prod stage endpoint"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

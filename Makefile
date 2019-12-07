@@ -1,6 +1,6 @@
-.PHONY: all install test build clean prepare package deploy sam-local-start sam-local-stop
+.PHONY: all install test build clean prepare package deploy show-api-url sam-local-start sam-local-stop
 
-all: install test build prepare package deploy
+all: install test build prepare package deploy show-api-url
 
 install:
 	go mod download
@@ -20,14 +20,14 @@ clean: sam-local-stop
 
 prepare:
 	aws cloudformation deploy \
-	 	--stack-name slack-command-example-prepare \
+	 	--stack-name slack-command-example2-prepare \
 	 	--template-file cfn/prepare.yaml \
 	 	--no-fail-on-empty-changeset
 
 package:
 	aws cloudformation package \
 	 	--s3-bucket `aws cloudformation describe-stacks \
-                    		--stack-name slack-command-example-prepare \
+                    		--stack-name slack-command-example2-prepare \
                     		--query "Stacks[0].Outputs[?OutputKey=='PackageBucketName'].OutputValue | [0]" \
                     		--output text` \
 	 	--template-file cfn/application.yaml \
@@ -35,7 +35,7 @@ package:
 
 deploy:
 	aws cloudformation deploy \
-	 	--stack-name slack-command-example-application \
+	 	--stack-name slack-command-example2-application \
 	 	--template-file build/application.yaml \
 	 	--capabilities CAPABILITY_IAM \
 	 	--no-fail-on-empty-changeset \
@@ -44,6 +44,12 @@ deploy:
 	 		EnvironmentEncryptionKeyArn=${ENVIRONMENT_ENCRYPTION_KEY_ARN} \
 	 		BotUserAccessToken=${BOT_USER_ACCESS_TOKEN} \
 	 		DefaultChannelID=${DEFAULT_CHANNEL_ID}
+
+show-api-url:
+	 aws cloudformation describe-stacks \
+	 	--stack-name slack-command-example2-application \
+		--query "Stacks[0].Outputs[?OutputKey=='ProdDataEndpoint'].OutputValue | [0]" \
+		--output text
 
 sam-local-start: build
 	[ -f build/sam.pid ] || (sam local start-api -t cfn/application.yaml & echo $$! > build/sam.pid)
