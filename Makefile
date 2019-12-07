@@ -40,7 +40,7 @@ deploy:
 	 	--capabilities CAPABILITY_IAM \
 	 	--no-fail-on-empty-changeset \
 	 	--parameter-overrides \
-	 		SlackSigningSecret=${SLACK_SIGNING_SECTET} \
+	 		SlackSigningSecret=${SLACK_SIGNING_SECRET} \
 	 		EnvironmentEncryptionKeyArn=${ENVIRONMENT_ENCRYPTION_KEY_ARN} \
 	 		BotUserAccessToken=${BOT_USER_ACCESS_TOKEN} \
 	 		DefaultChannelID=${DEFAULT_CHANNEL_ID}
