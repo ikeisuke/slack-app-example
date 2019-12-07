@@ -35,14 +35,14 @@ func NewEventReceiverInteraction(r repository.ISignatureRepository, e repository
 }
 
 func (s *EventReceiverInteraction) Run(input *EventReceiverInput) (string, error) {
-	verifyInput := repository.SignatureInput{
+	err := s.signature.Verify(&repository.SignatureInput{
 		Timestamp:        input.Timestamp,
 		Signature:        input.Signature,
 		SigningSecret:    input.SigningSecret,
 		Body:             input.Body,
 		SignatureVersion: input.SignatureVersion,
-	}
-	if err := s.signature.Verify(verifyInput); err != nil {
+	})
+	if err != nil {
 		return "", err
 	}
 	var event entity.EventWrapper

@@ -137,9 +137,9 @@ func TestSlackCommandInteraction_Run(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &SlackCommandInteraction{
-				signature: tt.fields.signature,
-				command:   tt.fields.command,
-				presenter: tt.fields.presenter,
+				signature:  tt.fields.signature,
+				subCommand: tt.fields.command,
+				presenter:  tt.fields.presenter,
 			}
 			if got, _ := s.Run(tt.args.input); got != tt.want {
 				t.Errorf("Run() = %v, want %v", got, tt.want)

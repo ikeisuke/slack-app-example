@@ -22,7 +22,7 @@ type SignatureOutput struct {
 }
 
 type ISignatureRepository interface {
-	Verify(input SignatureInput) error
+	Verify(input *SignatureInput) error
 }
 
 type SignatureRepository struct {
@@ -38,7 +38,7 @@ func sign(base string, secret string) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
-func (*SignatureRepository) Verify(input SignatureInput) error {
+func (*SignatureRepository) Verify(input *SignatureInput) error {
 	if math.Abs(float64(time.Now().Unix()-int64(input.Timestamp))) > 5*60 {
 		return errors.New("input timestamp is newer or older than 5 minutes")
 	}
